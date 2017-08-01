@@ -18,6 +18,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.assertj.swing.assertions.Assertions;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TestRule;
 import org.junit.rules.TestWatcher;
@@ -37,6 +38,9 @@ import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Listeners;
 
 import java.io.File;
 import java.net.URL;
@@ -50,7 +54,8 @@ import java.util.regex.Pattern;
  *
  * @author ddavison
  */
-public class Locomotive implements Conductor<Locomotive> {
+@Listeners(TestListener.class)
+public class Locomotive extends Watchman implements Conductor<Locomotive> {
 
     public static final Logger log = LogManager.getLogger(Locomotive.class);
 
@@ -94,6 +99,11 @@ public class Locomotive implements Conductor<Locomotive> {
     }
 
     public Locomotive() {
+    }
+
+    @Before
+    @BeforeMethod (alwaysRun = true)
+    public void init() {
         final Properties props = new PropertiesUtil().loadDefault();
 
         /*
@@ -227,43 +237,15 @@ public class Locomotive implements Conductor<Locomotive> {
     }
 
     @Rule
-    public TestRule watchman = new TestWatcher() {
-        boolean failure;
-        Throwable e;
-        Description description;
+    public TestRule watchman = this;
 
+    public Locomotive getLocomotive() {
+        return this;
+    }
 
-        @Override
-        protected void failed(Throwable e, Description description) {
-            if (configuration.screenshotsOnFail()) {
-                failure = true;
-                this.e = e;
-                this.description = description;
-            }
-        }
-
-        /**
-         * Take screenshot if the test failed.
-         */
-        @Override
-        protected void finished(Description description) {
-            super.finished(description);
-            if (configuration.screenshotsOnFail()) {
-                if (failure) {
-                    ScreenShotUtil.take(Locomotive.this,
-                            description.getDisplayName(),
-                            e.getMessage() != null ? e.getMessage() : e.toString());
-                }
-                Locomotive.this.driver.quit();
-            }
-        }
-    };
-
-    @After
-    public void teardown() {
-        if (!configuration.screenshotsOnFail()) {
-            driver.quit();
-        }
+    @AfterMethod (alwaysRun = true)
+    public void quit() {
+        driver.quit();
     }
 
     public WebElement waitForElement(String css) {
