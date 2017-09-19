@@ -365,6 +365,31 @@ public class Locomotive implements Conductor<Locomotive> {
         return this;
     }
 
+    /**
+     * Scroll to an element on the page
+     * @param
+     * @return
+     */
+
+    public Locomotive scrollToElement(int scrollBy) {
+        JavascriptExecutor jse = (JavascriptExecutor)driver;
+        jse.executeScript("window.scrollBy(0," + scrollBy + ")", "");
+        return this;
+    }
+
+    /**
+     * Scroll to an element on the page within a specific element
+     * @param css
+     * @return The implementing class for fluency
+     */
+    public Locomotive scrollToElement(String css, int scrollBy) { return scrollToElement(By.cssSelector(css), scrollBy); }
+
+    public Locomotive scrollToElement(By by, int scrollBy) {
+        JavascriptExecutor jse = (JavascriptExecutor)driver;
+        jse.executeScript("window.scrollBy(0," + scrollBy + ")", by);
+        return this;
+    }
+
     public Locomotive click(String css) {
         return click(By.cssSelector(css));
     }
